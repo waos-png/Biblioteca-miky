@@ -15,6 +15,7 @@ public class Main {
             System.out.println("4. Devolver libro");
             System.out.println("5. Mostrar libros disponibles");
             System.out.println("6. Mostrar usuarios");
+            System.out.println("7. Mostrar historial de préstamos");
             System.out.println("0. Salir");
             System.out.print("Opción: ");
             opcion = sc.nextInt();
@@ -26,6 +27,7 @@ public class Main {
                 case 4: biblioteca.devolverLibro(); break;
                 case 5: biblioteca.mostrarLibrosDisponibles(); break;
                 case 6: biblioteca.mostrarUsuarios(); break;
+                case 7: biblioteca.mostrarHistorialPrestamos(); break;
                 case 0: System.out.println("Saliendo..."); break;
                 default: System.out.println("Opción inválida.");
             }

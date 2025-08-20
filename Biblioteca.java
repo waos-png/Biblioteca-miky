@@ -2,9 +2,26 @@ package biblioteca;
 
 import java.util.*;
 
+class Prestamo {
+    Usuario usuario;
+    Libro libro;
+    Date fechaInicio;
+    Date fechaLimite;
+    Date fechaDevolucion;
+
+    public Prestamo(Usuario usuario, Libro libro, Date fechaInicio, Date fechaLimite) {
+        this.usuario = usuario;
+        this.libro = libro;
+        this.fechaInicio = fechaInicio;
+        this.fechaLimite = fechaLimite;
+        this.fechaDevolucion = null;
+    }
+}
+
 public class Biblioteca {
     ArrayList<Libro> libros = new ArrayList<>();
     ArrayList<Usuario> usuarios = new ArrayList<>();
+    ArrayList<Prestamo> prestamos = new ArrayList<>();
     Scanner sc = new Scanner(System.in);
 
     void registrarLibro() {
@@ -35,7 +52,7 @@ public class Biblioteca {
             System.out.println("Usuario no encontrado.");
             return;
         }
-        if (usuario.librosPrestados >= 3) {
+        if (usuario.librosPrestados.size() >= 3) {
             System.out.println("Ya tiene 3 libros prestados.");
             return;
         }
@@ -47,8 +64,14 @@ public class Biblioteca {
             return;
         }
         libro.marcarPrestado();
-        usuario.librosPrestados++;
-        System.out.println("Préstamo realizado.");
+        usuario.agregarPrestamo(libro);
+        Date fechaInicio = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(fechaInicio);
+        cal.add(Calendar.DAY_OF_MONTH, 7); // 7 días de préstamo
+        Date fechaLimite = cal.getTime();
+        prestamos.add(new Prestamo(usuario, libro, fechaInicio, fechaLimite));
+        System.out.println("Préstamo realizado. Fecha límite: " + fechaLimite);
     }
 
     void devolverLibro() {
@@ -66,9 +89,37 @@ public class Biblioteca {
             System.out.println("Libro no encontrado.");
             return;
         }
+        Prestamo prestamo = buscarPrestamo(usuario, libro);
+        if (prestamo == null || prestamo.fechaDevolucion != null) {
+            System.out.println("No hay préstamo activo para este libro.");
+            return;
+        }
         libro.marcarDisponible();
-        if (usuario.librosPrestados > 0) usuario.librosPrestados--;
-        System.out.println("Devolución realizada.");
+        usuario.devolverLibro(libro);
+        Date fechaDevolucion = new Date();
+        prestamo.fechaDevolucion = fechaDevolucion;
+        long retraso = (fechaDevolucion.getTime() - prestamo.fechaLimite.getTime()) / (1000 * 60 * 60 * 24);
+        if (retraso > 0) {
+            long multa = retraso * 500;
+            System.out.println("Devolución realizada. Multa por retraso: $" + multa);
+        } else {
+            System.out.println("Devolución realizada. Sin multa.");
+        }
+    }
+
+    void mostrarHistorialPrestamos() {
+        for (Prestamo p : prestamos) {
+            System.out.println("Usuario: " + p.usuario.nombre + ", Libro: " + p.libro.titulo +
+                ", Inicio: " + p.fechaInicio + ", Límite: " + p.fechaLimite +
+                ", Devolución: " + (p.fechaDevolucion != null ? p.fechaDevolucion : "Pendiente"));
+        }
+    }
+
+    private Prestamo buscarPrestamo(Usuario usuario, Libro libro) {
+        for (Prestamo p : prestamos)
+            if (p.usuario == usuario && p.libro == libro && p.fechaDevolucion == null)
+                return p;
+        return null;
     }
 
     void mostrarLibrosDisponibles() {
